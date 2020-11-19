@@ -1,3 +1,4 @@
+using AspNetCoreRateLimit;
 using DBContexts;
 using IService.BaseManage;
 using Microsoft.AspNetCore.Builder;
@@ -10,6 +11,7 @@ using Microsoft.OpenApi.Models;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using Service.BaseManage;
+using System.Collections.Generic;
 using System.Text.Encodings.Web;
 using System.Text.Unicode;
 
@@ -56,6 +58,46 @@ namespace WebApp
                     }
                 });
             });
+            #endregion
+
+            #region IP限流配置
+
+            // 存储IP计数器及配置规则
+            services.AddMemoryCache();
+            // 配置
+            services.Configure<IpRateLimitOptions>(options =>
+            {
+                //options.EnableEndpointRateLimiting = true; // true，意思是IP限制会应用于单个配置的Endpoint上,false，只能限制所有接口Endpoint只能为*
+                options.HttpStatusCode = 429; // 触发限制之后给客户端返回的HTTP状态码
+                options.RealIpHeader = "X-Real-IP";
+                options.ClientIdHeader = "X-ClientId";
+                options.QuotaExceededResponse = new QuotaExceededResponse // 触发限制之后给客户端返回的数据
+                {
+                    Content = "{{\"code\":-1,\"msg\":\"访问过于频繁，请稍后重试\"}}",
+                    ContentType = "application/json",
+                    StatusCode = 429
+                };
+                // 限制规则
+                options.GeneralRules = new List<RateLimitRule>
+                {
+                    new RateLimitRule
+                    {
+                        //Endpoint = "*:/signtoken",// 正则匹配规则，只针对签发token接口
+                        Endpoint = "*",
+                        Period = "1s",// 周期 s秒 m分钟 h时 d天
+                        Limit = 10,// 次数
+                    }
+                };
+            });
+
+            // 注入计数器和规则存储
+            services.AddSingleton<IIpPolicyStore, MemoryCacheIpPolicyStore>();
+            services.AddSingleton<IRateLimitCounterStore, MemoryCacheRateLimitCounterStore>();
+            // the clientId/clientIp resolvers use it.
+            services.AddHttpContextAccessor();
+            // 配置（计数器密钥生成器）
+            services.AddSingleton<IRateLimitConfiguration, RateLimitConfiguration>();
+
             #endregion
 
             #region 跨域设置
@@ -119,6 +161,9 @@ namespace WebApp
             }
 
             app.UseHttpsRedirection();
+
+            // 启用限流，放在app.UseRouting();之前
+            app.UseIpRateLimiting();
 
             app.UseRouting();
 
