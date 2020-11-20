@@ -36,16 +36,7 @@ namespace WebApp.Controllers
         {
             var UserFileInfo = _fileinfo.GetPersonFileInfo(idCard);
 
-            if (UserFileInfo != null)
-            {
-                var result = new { code = 0, msg = "成功",  data = UserFileInfo };
-                return result.ToJson();
-            }
-            else
-            {
-                var result = new { code = -1, msg = "未查询到数据", count = 0, data = "" };
-                return result.ToJson();
-            }
+            return UserFileInfo.ToJson();
         }
         #endregion
 
