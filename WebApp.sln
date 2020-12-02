@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.30621.155
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebApp", "WebApp.csproj", "{C8EAB785-3545-45DE-9253-B19E025C7E43}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WebApp", "WebApp.csproj", "{C8EAB785-3545-45DE-9253-B19E025C7E43}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "DBHelper", "DBHelper", "{78F3E009-1CEF-440D-A494-116239E0D6B1}"
 EndProject

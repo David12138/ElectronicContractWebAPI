@@ -5,6 +5,7 @@ using System;
 using System.Collections;
 using System.IO;
 using Tools.Base;
+using WebApp.Log;
 
 namespace WebApp.Controllers
 {
@@ -18,11 +19,13 @@ namespace WebApp.Controllers
         #region DI(依赖注入)
         private readonly IPersonService _personinfo;//人员合同信息
         private readonly IECPersonFileInfoService _fileinfo;//人员合同信息
+        private readonly ILoggerHelper _logger;//Log4日志
 
-        public PersonController(IPersonService personinfo, IECPersonFileInfoService fileinfo)
+        public PersonController(IPersonService personinfo, IECPersonFileInfoService fileinfo, ILoggerHelper logger)
         {
             _personinfo = personinfo;
             _fileinfo = fileinfo;
+            _logger = logger;
         }
         #endregion
         
@@ -34,6 +37,8 @@ namespace WebApp.Controllers
         [HttpGet("GetPersonFileInfo")]
         public ActionResult<object> GetPersonFileInfo(string idCard)
         {
+            _logger.Error(typeof(PersonController), "这是个错误日志", new Exception("123"));
+            _logger.Error(typeof(PersonController), "这是个bug日志");
             var UserFileInfo = _fileinfo.GetPersonFileInfo(idCard);
 
             return UserFileInfo.ToJson();

@@ -1,6 +1,9 @@
 using AspNetCoreRateLimit;
 using DBContexts;
 using IService.BaseManage;
+using log4net;
+using log4net.Config;
+using log4net.Repository;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
@@ -12,8 +15,11 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using Service.BaseManage;
 using System.Collections.Generic;
+using System.IO;
 using System.Text.Encodings.Web;
 using System.Text.Unicode;
+using WebApp.Filter;
+using WebApp.Log;
 
 namespace WebApp
 {
@@ -25,6 +31,11 @@ namespace WebApp
         }
 
         public IConfiguration Configuration { get; }
+
+        /// <summary>
+        /// Log4net 仓储库
+        /// </summary>
+        public static ILoggerRepository repository { get; set; }
 
         public void ConfigureServices(IServiceCollection services)
         {
@@ -133,6 +144,7 @@ namespace WebApp
                 options.SerializerSettings.DateFormatString = "yyyy-MM-dd HH:mm:ss";
             });
             #endregion
+
             #region 中间件注册
 
             #region 基础管理
@@ -140,8 +152,22 @@ namespace WebApp
             services.AddTransient<IPersonService, PersonService>();
             //人员附件服务
             services.AddTransient<IECPersonFileInfoService, ECPersonFileInfoService>();
+
+            //log帮助类
+            services.AddSingleton<ILoggerHelper, LoggerHelper>();
+
+            //log4net
+            repository = LogManager.CreateRepository("WebApp");//项目名称
+            XmlConfigurator.Configure(repository,new FileInfo("Log4net.config"));//指定配置文件
             #endregion
 
+            #endregion
+
+            #region 过滤器
+            services.AddControllers(option => {
+                //全局异常过滤器
+                option.Filters.Add(typeof(GlobalExceptionFilter));
+            });
             #endregion
         }
 
